@@ -42,6 +42,11 @@ export const complaintService = {
         const res = await api.get(`/complaints/${complaintId}/comments`);
         return res.data;
     },
+    
+    upvoteComplaint: async (id) => {
+        const res = await api.post(`/complaints/${id}/upvote`);
+        return res.data;
+    },
 };
 
 export default complaintService;

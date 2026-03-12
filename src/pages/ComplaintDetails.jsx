@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { STATUS_COLORS, PRIORITY_LEVEL_COLORS, CATEGORY_ICONS, STATUS_DOT_COLORS, STATUSES } from '../utils/constants';
 import { formatDateTime, formatRelativeTime } from '../utils/formatters';
 import { HiOutlineArrowLeft, HiOutlineLocationMarker, HiOutlineClock, HiOutlineUser, HiOutlinePhotograph } from 'react-icons/hi';
+import { ArrowBigUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import MapEmbed from '../components/MapEmbed';
 
@@ -87,6 +88,10 @@ const ComplaintDetails = () => {
                         <div className="flex items-center gap-3 flex-wrap mt-2">
                             <span className={`badge ${STATUS_COLORS[complaint.status]}`}>{complaint.status}</span>
                             <span className={`badge ${PRIORITY_LEVEL_COLORS[complaint.priorityLevel]}`}>{complaint.priorityLevel}</span>
+                            <div className="flex items-center gap-1.5 bg-[#1A1A1B] text-white px-2.5 py-1 rounded-md border border-neutral-700">
+                                <ArrowBigUp className="w-4 h-4 fill-orange-500 text-orange-500" />
+                                <span className="text-sm font-bold">{complaint.upvotes || 0}</span>
+                            </div>
                             <span className="text-sm font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">
                                 Priority Score: {complaint.priorityScore}
                             </span>

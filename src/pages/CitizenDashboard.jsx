@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { STATUS_COLORS, PRIORITY_LEVEL_COLORS, CATEGORY_ICONS, STATUSES, CHART_COLORS, STATUS_CHART_COLORS } from '../utils/constants';
 import { formatRelativeTime, truncateText } from '../utils/formatters';
 import { HiOutlinePlusCircle, HiOutlineClipboardList, HiOutlineClock, HiOutlineCheckCircle, HiOutlineChartBar, HiOutlineTag, HiOutlineGlobeAlt, HiOutlineUser } from 'react-icons/hi';
+import { ArrowBigUp } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import Card from '../components/Card';
 
@@ -16,10 +17,26 @@ const CitizenDashboard = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [viewTab, setViewTab] = useState('personal'); // 'personal' or 'city'
 
-    const { data: complaintsData, isLoading: complaintsLoading } = useQuery({
-        queryKey: ['citizen-complaints', statusFilter],
-        queryFn: () => complaintService.getComplaints({ status: statusFilter || undefined }),
+    const { data: complaintsData, isLoading: complaintsLoading, refetch: refetchComplaints } = useQuery({
+        queryKey: ['citizen-complaints', statusFilter, viewTab],
+        queryFn: () => complaintService.getComplaints({ 
+            status: statusFilter || undefined,
+            sort: viewTab === 'city' ? '-upvotes' : '-createdAt',
+            scope: viewTab === 'city' ? 'city' : 'personal'
+        }),
     });
+
+    const handleUpvote = async (e, complaintId) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            await complaintService.upvoteComplaint(complaintId);
+            refetchComplaints();
+        } catch (error) {
+            console.error('Upvote failed:', error);
+            // Optionally add a toast notification here if available
+        }
+    };
 
     const { data: personalStatsData, isLoading: personalStatsLoading } = useQuery({
         queryKey: ['citizen-personal-stats'],
@@ -246,13 +263,48 @@ const CitizenDashboard = () => {
                                         <span className="text-xs text-text-tertiary">{complaint.address}</span>
                                     </div>
                                 </div>
-                                <div className="text-right flex-shrink-0">
+                                <div className="text-right flex-shrink-0 flex flex-col items-end gap-2">
                                     <p className="text-xs text-text-tertiary">{formatRelativeTime(complaint.createdAt)}</p>
-                                    {complaint.priorityLevel && (
-                                        <span className="text-sm font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20 mt-1 inline-block">
-                                            P:{complaint.priorityScore}
-                                        </span>
-                                    )}
+                                    
+                                    <div className="flex items-center gap-2">
+                                        {complaint.priorityLevel && (
+                                            <span className="text-sm font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">
+                                                P:{complaint.priorityScore}
+                                            </span>
+                                        )}
+                                        
+                                        <button
+                                            onClick={(e) => handleUpvote(e, complaint._id)}
+                                            disabled={['Resolved', 'Rejected'].includes(complaint.status)}
+                                            className={`flex items-center gap-2 px-4 py-1.5 rounded-full transition-all duration-200 text-white ${
+                                                ['Resolved', 'Rejected'].includes(complaint.status)
+                                                    ? 'opacity-50 cursor-not-allowed bg-[#1A1A1B]'
+                                                    : complaint.upvotedBy?.includes(user?._id)
+                                                        ? 'bg-[#1A1A1B] border border-orange-500/30'
+                                                        : 'bg-[#1A1A1B] hover:bg-[#272729] active:scale-95'
+                                            }`}
+                                            title={
+                                                ['Resolved', 'Rejected'].includes(complaint.status)
+                                                    ? `Complaint is ${complaint.status.toLowerCase()}`
+                                                    : complaint.upvotedBy?.includes(user?._id)
+                                                        ? "Retract support"
+                                                        : "upvote"
+                                            }
+                                        >
+                                            <ArrowBigUp 
+                                                className={`w-5 h-5 transition-colors ${
+                                                    complaint.upvotedBy?.includes(user?._id)
+                                                        ? 'fill-orange-500 text-orange-500'
+                                                        : 'text-white group-hover:text-orange-400'
+                                                }`} 
+                                            />
+                                            {complaint.upvotes > 0 && (
+                                                <span className="text-sm font-bold font-sans">
+                                                    {complaint.upvotes}
+                                                </span>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </Link>

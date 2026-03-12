@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { STATUS_COLORS, PRIORITY_LEVEL_COLORS, CATEGORY_ICONS, STATUSES } from '../utils/constants';
 import { formatRelativeTime, truncateText } from '../utils/formatters';
 import { HiOutlineClipboardList, HiOutlineClock, HiOutlineCheckCircle, HiOutlineExclamation } from 'react-icons/hi';
+import { ArrowBigUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const StaffDashboard = () => {
@@ -112,7 +113,7 @@ const StaffDashboard = () => {
                 >
                     All
                 </button>
-                {STATUSES.filter((s) => s !== 'Rejected').map((s) => (
+                {STATUSES.map((s) => (
                     <button
                         key={s}
                         onClick={() => setStatusFilter(s)}
@@ -153,6 +154,14 @@ const StaffDashboard = () => {
 
                                 {/* Quick Actions */}
                                 <div className="flex flex-col gap-1.5 flex-shrink-0">
+                                    {['Pending', 'Acknowledged'].includes(complaint.status) && (
+                                        <button
+                                            onClick={() => handleQuickStatus(complaint._id, 'Rejected')}
+                                            className="px-3 py-1.5 bg-error/10 text-error text-xs font-medium rounded-lg border border-error/20 hover:bg-error/20 transition-colors"
+                                        >
+                                            Reject
+                                        </button>
+                                    )}
                                     {complaint.status === 'Pending' && (
                                         <button
                                             onClick={() => handleQuickStatus(complaint._id, 'Acknowledged')}
@@ -177,9 +186,15 @@ const StaffDashboard = () => {
                                             Resolve
                                         </button>
                                     )}
-                                    <span className="text-sm font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">
-                                        P:{complaint.priorityScore}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1 bg-[#1A1A1B] text-white px-2 py-0.5 rounded-md border border-neutral-700">
+                                            <ArrowBigUp className="w-3.5 h-3.5 fill-orange-500 text-orange-500" />
+                                            <span className="text-xs font-bold">{complaint.upvotes || 0}</span>
+                                        </div>
+                                        <span className="text-sm font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">
+                                            P:{complaint.priorityScore}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
