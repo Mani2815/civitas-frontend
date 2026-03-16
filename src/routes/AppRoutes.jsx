@@ -15,6 +15,7 @@ import CreateComplaint from '../pages/CreateComplaint';
 import ComplaintDetails from '../pages/ComplaintDetails';
 import StaffManagement from '../pages/StaffManagement';
 import AnalyticsReports from '../pages/AnalyticsReports';
+import Profile from '../pages/Profile';
 
 const AppRoutes = () => {
     const { user, isAuthenticated } = useAuth();
@@ -67,6 +68,15 @@ const AppRoutes = () => {
                 <Route path="/admin/staff" element={<StaffManagement />} />
                 <Route path="/admin/analytics" element={<AnalyticsReports />} />
                 <Route path="/admin/complaints/:id" element={<ComplaintDetails />} />
+            </Route>
+
+            {/* Shared Authenticated Routes */}
+            <Route element={
+                <ProtectedRoute roles={['citizen', 'staff', 'admin']}>
+                    <DashboardLayout />
+                </ProtectedRoute>
+            }>
+                <Route path="/profile" element={<Profile />} />
             </Route>
 
             {/* Catch all */}

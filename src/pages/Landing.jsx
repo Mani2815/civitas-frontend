@@ -1,55 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HiOutlineOfficeBuilding, HiOutlineShieldCheck, HiOutlineChartBar, HiOutlineLightningBolt, HiOutlineLocationMarker, HiOutlineArrowRight, HiOutlineSun, HiOutlineMoon, HiOutlineDocumentAdd, HiOutlineBeaker, HiOutlineEye, HiOutlineCheckCircle, HiOutlineStar } from 'react-icons/hi';
+import analyticsService from '../services/analyticsService';
 import Card from '../components/Card';
-
-const SpotlightButton = ({ children, className = '', variant = 'dark', ...props }) => {
-    const divRef = useRef(null);
-    const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [opacity, setOpacity] = useState(0);
-
-    const handleMouseMove = (e) => {
-        if (!divRef.current) return;
-        const rect = divRef.current.getBoundingClientRect();
-        setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-    };
-
-    const isLight = variant === 'light';
-
-    return (
-        <button
-            ref={divRef}
-            onMouseMove={handleMouseMove}
-            onMouseEnter={() => setOpacity(1)}
-            onMouseLeave={() => setOpacity(0)}
-            className={`relative overflow-hidden rounded-full transition-all duration-300 hover:scale-105 group ${isLight
-                ? 'bg-white text-black border border-neutral-200 hover:shadow-[0_0_20px_rgba(0,0,0,0.1)]'
-                : 'bg-[#0a0a0a] text-white border border-neutral-800 hover:shadow-[0_0_20px_rgba(0,0,0,0.3)]'
-                } ${className}`}
-            {...props}
-        >
-            {/* Added soft inner glow outline layers */}
-            <div
-                className={`absolute inset-0 rounded-full pointer-events-none z-10 ${isLight
-                    ? 'shadow-[inset_0_0_8px_rgba(0,0,0,0.15),inset_0_0_16px_rgba(0,0,0,0.08),inset_0_0_24px_rgba(0,0,0,0.04)]'
-                    : 'shadow-[inset_0_0_12px_rgba(255,255,255,0.4),inset_0_0_24px_rgba(255,255,255,0.2),inset_0_0_36px_rgba(255,255,255,0.1)]'
-                    }`}
-            />
-            <div
-                className="pointer-events-none absolute inset-0 transition-opacity duration-500 ease-in-out z-0"
-                style={{
-                    opacity: isLight ? opacity * 0.4 : opacity,
-                    background: 'linear-gradient(to right, rgba(59, 130, 246, 0.8), rgba(251, 146, 60, 0.8))',
-                    WebkitMaskImage: `radial-gradient(150px circle at ${position.x}px ${position.y}px, black 10%, transparent 100%)`,
-                    maskImage: `radial-gradient(150px circle at ${position.x}px ${position.y}px, black 10%, transparent 100%)`,
-                    filter: 'blur(2px)' // slight blur on the gradient background itself before masking
-                }}
-            />
-            <span className="relative z-20">{children}</span>
-        </button>
-    );
-};
+import SpotlightButton from '../components/SpotlightButton';
 
 const FadeIn = ({ children, delay = 0, className = '', y = 20 }) => (
     <motion.div
@@ -64,6 +19,27 @@ const FadeIn = ({ children, delay = 0, className = '', y = 20 }) => (
 );
 
 const Landing = () => {
+    const [stats, setStats] = useState({
+        resolvedCount: 50000,
+        departmentCount: 120,
+        satisfactionRate: 98,
+        avgResolutionTime: 24
+    });
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await analyticsService.getImpactStats();
+                if (response.success) {
+                    setStats(response.data);
+                }
+            } catch (error) {
+                console.error("Error fetching impact stats:", error);
+            }
+        };
+        fetchStats();
+    }, []);
+
     return (
         <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-primary selection:text-white overflow-hidden">
 
@@ -71,7 +47,7 @@ const Landing = () => {
             <div className="absolute inset-0 pointer-events-none overflow-hidden block">
                 {/* 1. Soft Blue/Lavender Ambient Glow (Left & Right) */}
                 <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[800px] bg-indigo-200/40 dark:bg-indigo-900/20 blur-[130px] rounded-full"></div>
-                <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[800px] bg-blue-200/40 dark:bg-blue-900/20 blur-[130px] rounded-full"></div>
+                <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[800px] bg-blue-300/20 dark:bg-blue-900/20 blur-[130px] rounded-full"></div>
 
                 {/* 2. Intense Horizontal Orange/Peach Bar (Navbar backing) */}
                 <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-[110%] max-w-[1500px] h-[350px] bg-gradient-to-r from-orange-200/80 via-orange-400/60 to-orange-200/80 dark:from-orange-500/20 dark:via-orange-600/20 dark:to-orange-500/20 blur-[80px] rounded-[100%]"></div>
@@ -169,7 +145,7 @@ const Landing = () => {
             {/* Features Grid */}
             <section id="features" className="relative z-20 isolate px-6 pb-16 max-w-7xl mx-auto scroll-mt-24">
                 {/* Left gradient blob */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[280px] h-[400px] bg-blue-200/50 blur-[100px] rounded-full pointer-events-none -z-10"></div>
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[280px] h-[400px] bg-blue-300/30 blur-[100px] rounded-full pointer-events-none -z-10"></div>
                 {/* Right gradient blob */}
                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[280px] h-[400px] bg-purple-200/50 blur-[100px] rounded-full pointer-events-none -z-10"></div>
 
@@ -319,7 +295,7 @@ const Landing = () => {
             {/* Our Impact Section as Card */}
             <section id="about" className="relative z-20 isolate w-full pt-16 pb-32 scroll-mt-32">
                 {/* Left gradient blob */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[320px] h-[400px] bg-blue-200/50 blur-[100px] rounded-full pointer-events-none"></div>
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[320px] h-[400px] bg-blue-300/30 blur-[100px] rounded-full pointer-events-none"></div>
                 {/* Right gradient blob */}
                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[320px] h-[400px] bg-purple-200/50 blur-[100px] rounded-full pointer-events-none"></div>
 
@@ -356,7 +332,7 @@ const Landing = () => {
                                     </svg>
                                 </div>
                                 <h3 className="text-4xl md:text-5xl font-bold font-serif text-[#1C2434] mb-2 tracking-tight">
-                                    50,000+
+                                    {stats.resolvedCount.toLocaleString()}+
                                 </h3>
                                 <p className="text-xs text-[#6B7280] font-medium tracking-wide">Complaints Resolved</p>
                             </FadeIn>
@@ -376,7 +352,7 @@ const Landing = () => {
                                     </svg>
                                 </div>
                                 <h3 className="text-4xl md:text-5xl font-bold font-serif text-[#1C2434] mb-2 tracking-tight">
-                                    120+
+                                    {stats.departmentCount}+
                                 </h3>
                                 <p className="text-xs text-[#6B7280] font-medium tracking-wide">City Departments</p>
                             </FadeIn>
@@ -390,7 +366,7 @@ const Landing = () => {
                                     </svg>
                                 </div>
                                 <h3 className="text-4xl md:text-5xl font-bold font-serif text-[#1C2434] mb-2 tracking-tight">
-                                    98%
+                                    {stats.satisfactionRate}%
                                 </h3>
                                 <p className="text-xs text-[#6B7280] font-medium tracking-wide">Satisfaction Rate</p>
                             </FadeIn>
@@ -398,13 +374,13 @@ const Landing = () => {
                             {/* Metric 4 - Avg. Resolution Time */}
                             <FadeIn delay={0.7} className="flex flex-col items-center">
                                 <div className="w-12 h-12 flex items-center justify-center text-[#FACC15] mb-6">
-                                    {/* Simple solid lightning bolt */}
-                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-9 h-9">
-                                        <path d="M13 2L4.09 12.26A1 1 0 005 14h6v8l8.91-10.26A1 1 0 0019 10h-6V2z" />
+                                    {/* Outlined lightning bolt */}
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10">
+                                        <path d="M13 2L3 14h9l-1 8L21 10h-9l1-8z" />
                                     </svg>
                                 </div>
                                 <h3 className="text-4xl md:text-5xl font-bold font-serif text-[#1C2434] mb-2 tracking-tight">
-                                    24hrs
+                                    {stats.avgResolutionTime}hrs
                                 </h3>
                                 <p className="text-xs text-[#6B7280] font-medium tracking-wide">Avg. Resolution Time</p>
                             </FadeIn>
@@ -726,7 +702,7 @@ const Landing = () => {
                 <div className="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden block h-[800px] z-0">
                     {/* 1. Soft Blue/Lavender Ambient Glow (Left & Right) */}
                     <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[800px] bg-indigo-200/40 dark:bg-indigo-900/20 blur-[130px] rounded-full"></div>
-                    <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[800px] bg-blue-200/40 dark:bg-blue-900/20 blur-[130px] rounded-full"></div>
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[800px] bg-blue-300/20 dark:bg-blue-900/20 blur-[130px] rounded-full"></div>
 
                     {/* 2. Intense Horizontal Orange/Peach Bar (Footer base) */}
                     <div className="absolute bottom-[-200px] left-1/2 -translate-x-1/2 w-[110%] max-w-[1500px] h-[400px] bg-gradient-to-r from-orange-200/80 via-orange-400/60 to-orange-200/80 dark:from-orange-500/20 dark:via-orange-600/20 dark:to-orange-500/20 blur-[80px] rounded-[100%]"></div>

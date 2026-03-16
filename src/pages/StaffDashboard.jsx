@@ -21,11 +21,37 @@ const StaffDashboard = () => {
 
     const statusMutation = useMutation({
         mutationFn: ({ id, status, remarks }) => complaintService.updateStatus(id, status, remarks),
+        onMutate: async ({ id, status }) => {
+            await queryClient.cancelQueries({ queryKey: ['staff-complaints', statusFilter] });
+            const previousData = queryClient.getQueryData(['staff-complaints', statusFilter]);
+
+            if (previousData) {
+                queryClient.setQueryData(['staff-complaints', statusFilter], {
+                    ...previousData,
+                    data: {
+                        ...previousData.data,
+                        complaints: previousData.data.complaints.map(c => 
+                            c._id === id ? { ...c, status: status } : c
+                        )
+                    }
+                });
+            }
+            return { previousData };
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['staff-complaints'] });
             toast.success('Status updated');
         },
-        onError: (err) => toast.error(err.response?.data?.message || 'Update failed'),
+        onError: (err, variables, context) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(['staff-complaints', statusFilter], context.previousData);
+            }
+            toast.error(err.response?.data?.message || 'Update failed');
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['staff-complaints'] });
+            queryClient.invalidateQueries({ queryKey: ['citizen-complaints'] });
+            queryClient.invalidateQueries({ queryKey: ['complaint'] });
+        },
     });
 
     const complaints = data?.data?.complaints || [];

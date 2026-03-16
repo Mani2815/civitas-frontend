@@ -43,6 +43,10 @@ export const analyticsService = {
         const res = await api.get('/analytics/city-stats');
         return res.data;
     },
+    getImpactStats: async () => {
+        const res = await api.get('/analytics/impact-stats');
+        return res.data;
+    },
 };
 
 export default analyticsService;

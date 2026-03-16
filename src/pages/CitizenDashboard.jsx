@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import complaintService from '../services/complaintService';
 import analyticsService from '../services/analyticsService';
@@ -17,7 +17,8 @@ const CitizenDashboard = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [viewTab, setViewTab] = useState('personal'); // 'personal' or 'city'
 
-    const { data: complaintsData, isLoading: complaintsLoading, refetch: refetchComplaints } = useQuery({
+    const queryClient = useQueryClient();
+    const { data: complaintsData, isLoading: complaintsLoading } = useQuery({
         queryKey: ['citizen-complaints', statusFilter, viewTab],
         queryFn: () => complaintService.getComplaints({ 
             status: statusFilter || undefined,
@@ -26,16 +27,51 @@ const CitizenDashboard = () => {
         }),
     });
 
-    const handleUpvote = async (e, complaintId) => {
+    const upvoteMutation = useMutation({
+        mutationFn: (complaintId) => complaintService.upvoteComplaint(complaintId),
+        onMutate: async (id) => {
+            await queryClient.cancelQueries({ queryKey: ['citizen-complaints'] });
+            const previousData = queryClient.getQueryData(['citizen-complaints', statusFilter, viewTab]);
+
+            if (previousData) {
+                queryClient.setQueryData(['citizen-complaints', statusFilter, viewTab], {
+                    ...previousData,
+                    data: {
+                        ...previousData.data,
+                        complaints: previousData.data.complaints.map(c => {
+                            if (c._id === id) {
+                                const isUpvoted = c.upvotedBy?.includes(user?._id);
+                                return {
+                                    ...c,
+                                    upvotes: isUpvoted ? Math.max(0, c.upvotes - 1) : c.upvotes + 1,
+                                    upvotedBy: isUpvoted 
+                                        ? c.upvotedBy.filter(uid => uid !== user?._id)
+                                        : [...(c.upvotedBy || []), user?._id]
+                                };
+                            }
+                            return c;
+                        })
+                    }
+                });
+            }
+
+            return { previousData };
+        },
+        onError: (err, id, context) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(['citizen-complaints', statusFilter, viewTab], context.previousData);
+            }
+            toast.error('Action failed');
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['citizen-complaints'] });
+        }
+    });
+
+    const handleUpvote = (e, complaintId) => {
         e.preventDefault();
         e.stopPropagation();
-        try {
-            await complaintService.upvoteComplaint(complaintId);
-            refetchComplaints();
-        } catch (error) {
-            console.error('Upvote failed:', error);
-            // Optionally add a toast notification here if available
-        }
+        upvoteMutation.mutate(complaintId);
     };
 
     const { data: personalStatsData, isLoading: personalStatsLoading } = useQuery({

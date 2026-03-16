@@ -3,7 +3,8 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
-import { HiOutlineMenu, HiOutlineX, HiOutlineLogout, HiOutlineHome, HiOutlinePlusCircle, HiOutlineChartBar, HiOutlineViewGrid, HiOutlineClipboardList, HiOutlineUserGroup, HiOutlineOfficeBuilding } from 'react-icons/hi';
+import ChatbotWidget from '../components/ChatbotWidget';
+import { HiOutlineMenu, HiOutlineX, HiOutlineLogout, HiOutlineHome, HiOutlinePlusCircle, HiOutlineChartBar, HiOutlineViewGrid, HiOutlineClipboardList, HiOutlineUserGroup, HiOutlineOfficeBuilding, HiOutlineUser } from 'react-icons/hi';
 
 const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -40,7 +41,10 @@ const DashboardLayout = () => {
         }
     };
 
-    const navItems = getNavItems();
+    const navItems = [
+        ...getNavItems(),
+        { path: '/profile', label: 'My Profile', icon: HiOutlineUser }
+    ];
 
     return (
         <div className="min-h-screen bg-bg-primary flex text-text-primary transition-colors duration-200">
@@ -98,7 +102,11 @@ const DashboardLayout = () => {
 
                 {/* User Info & Logout */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-bg-secondary">
-                    <div className="flex items-center gap-3 mb-3">
+                    <Link 
+                        to="/profile" 
+                        onClick={() => setSidebarOpen(false)}
+                        className="flex items-center gap-3 mb-3 p-1 rounded-lg hover:bg-bg-tertiary transition-colors"
+                    >
                         <div className="w-9 h-9 rounded-full bg-bg-tertiary flex items-center justify-center text-sm font-bold text-text-primary border border-border shadow-sm">
                             {user?.name?.[0]?.toUpperCase() || 'U'}
                         </div>
@@ -106,7 +114,7 @@ const DashboardLayout = () => {
                             <p className="text-sm font-medium text-text-primary truncate">{user?.name}</p>
                             <p className="text-xs text-text-secondary truncate capitalize">{user?.role}</p>
                         </div>
-                    </div>
+                    </Link>
                     <button
                         onClick={handleLogout}
                         className="flex items-center gap-2 w-full px-3 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
@@ -135,6 +143,7 @@ const DashboardLayout = () => {
                     </div>
                 </main>
             </div>
+            <ChatbotWidget />
         </div>
     );
 };

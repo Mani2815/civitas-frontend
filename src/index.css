@@ -48,8 +48,8 @@
     --warning-light: #FEF3C7;
     --error: #EF4444;
     --error-light: #FEE2E2;
-    --info: #3B82F6;
-    --info-light: #DBEAFE;
+    --info: #1F3A93;
+    --info-light: #E0E7FF;
 
     /* Text Colors - Light Mode */
     --text-primary: #1F2937;
@@ -176,8 +176,8 @@ html[data-theme="dark"],
         --warning-light: #78350F;
         --error: #F87171;
         --error-light: #7F1D1D;
-        --info: #60A5FA;
-        --info-light: #1E3A8A;
+        --info: #3B82F6;
+        --info-light: #172554;
 
         /* Text Colors - Dark Mode */
         --text-primary: #F3F4F6;
@@ -458,4 +458,47 @@ html[data-theme="dark"] .moon-icon {
         background-color: var(--primary-blue-light);
         color: white;
     }
+}
+
+/* Chatbot Markdown Content Styling */
+.prose p {
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+}
+.prose p:last-child {
+    margin-bottom: 0;
+}
+.prose ul, .prose ol {
+    margin: 0.75rem 0;
+    padding-left: 1.25rem;
+    list-style-position: outside;
+}
+.prose ul {
+    list-style-type: disc;
+}
+.prose ol {
+    list-style-type: decimal;
+}
+.prose li {
+    margin-bottom: 0.4rem;
+    line-height: 1.5;
+}
+.prose li:last-child {
+    margin-bottom: 0;
+}
+.prose strong {
+    font-weight: 700;
+    color: inherit;
+}
+.prose em {
+    font-style: italic;
+}
+.prose code {
+    background: rgba(0,0,0,0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.dark .prose code {
+    background: rgba(255,255,255,0.1);
 }

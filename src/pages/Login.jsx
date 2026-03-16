@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Input from '../components/Input';
 import Button from '../components/Button';
+import SpotlightButton from '../components/SpotlightButton';
 import { HiOutlineMail, HiOutlineLockClosed } from 'react-icons/hi';
 
 const Login = () => {
@@ -65,26 +66,29 @@ const Login = () => {
                     </div>
                 </div>
 
-                <button
+                <SpotlightButton
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 rounded-full bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm font-semibold hover:scale-[1.02] transition-all shadow-sm border border-neutral-200 dark:border-neutral-800 hover:bg-gradient-to-r hover:from-[#2e4374] hover:via-[#a5c0ee] hover:to-[#e6a575] hover:border-transparent hover:text-white dark:hover:text-white relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    variant="light"
+                    className="w-full py-2.5 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                    <span className="relative z-10">{loading ? 'Signing in...' : 'Sign In'}</span>
-                </button>
+                    {loading ? 'Signing in...' : 'Sign In'}
+                </SpotlightButton>
             </form>
 
             <div className="mt-8 pt-6 border-t border-border">
                 <p className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-4 text-center">Quick Demo Login</p>
                 <div className="flex gap-3 justify-center">
                     {['citizen', 'staff', 'admin'].map((role) => (
-                        <button
+                        <SpotlightButton
                             key={role}
                             onClick={() => fillDemo(role)}
-                            className="px-4 py-2 bg-bg-tertiary hover:bg-bg-secondary text-text-primary text-xs font-medium rounded-lg border border-border capitalize transition-colors"
+                            variant="light"
+                            showInnerGlow={false}
+                            className="px-5 py-2 text-xs font-semibold capitalize !rounded-xl"
                         >
                             {role}
-                        </button>
+                        </SpotlightButton>
                     ))}
                 </div>
             </div>

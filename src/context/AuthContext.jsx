@@ -54,12 +54,20 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     }, []);
 
+    const updateUser = useCallback((userData) => {
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const updatedUser = { ...currentUser, ...userData };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+    }, []);
+
     const value = {
         user,
         loading,
         login,
         register,
         logout,
+        updateUser,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
         isStaff: user?.role === 'staff',

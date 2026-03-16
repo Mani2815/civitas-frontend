@@ -25,25 +25,134 @@ const ComplaintDetails = () => {
         queryFn: () => complaintService.getComplaintById(id),
     });
 
+    const upvoteMutation = useMutation({
+        mutationFn: () => complaintService.upvoteComplaint(id),
+        onMutate: async () => {
+            await queryClient.cancelQueries({ queryKey: ['complaint', id] });
+            const previousData = queryClient.getQueryData(['complaint', id]);
+
+            if (previousData) {
+                const complaint = previousData.data.complaint;
+                const isUpvoted = complaint.upvotedBy?.includes(user?._id);
+                
+                queryClient.setQueryData(['complaint', id], {
+                    ...previousData,
+                    data: {
+                        ...previousData.data,
+                        complaint: {
+                            ...complaint,
+                            upvotes: isUpvoted ? Math.max(0, complaint.upvotes - 1) : complaint.upvotes + 1,
+                            upvotedBy: isUpvoted 
+                                ? complaint.upvotedBy.filter(uid => uid !== user?._id)
+                                : [...(complaint.upvotedBy || []), user?._id]
+                        }
+                    }
+                });
+            }
+            return { previousData };
+        },
+        onError: (err, variables, context) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(['complaint', id], context.previousData);
+            }
+            toast.error('Action failed');
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['complaint', id] });
+            queryClient.invalidateQueries({ queryKey: ['citizen-complaints'] });
+        }
+    });
+
     const statusMutation = useMutation({
         mutationFn: () => complaintService.updateStatus(id, statusUpdate, remarks),
+        onMutate: async () => {
+            await queryClient.cancelQueries({ queryKey: ['complaint', id] });
+            const previousData = queryClient.getQueryData(['complaint', id]);
+
+            if (previousData) {
+                const complaint = previousData.data.complaint;
+                const newTimelineEntry = {
+                    newStatus: statusUpdate,
+                    oldStatus: complaint.status,
+                    remarks: remarks,
+                    updatedBy: { name: user?.name },
+                    createdAt: new Date().toISOString()
+                };
+
+                queryClient.setQueryData(['complaint', id], {
+                    ...previousData,
+                    data: {
+                        ...previousData.data,
+                        complaint: {
+                            ...complaint,
+                            status: statusUpdate,
+                            timeline: [...(complaint.timeline || []), newTimelineEntry]
+                        }
+                    }
+                });
+            }
+            return { previousData };
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['complaint', id] });
             setStatusUpdate('');
             setRemarks('');
             toast.success('Status updated');
         },
-        onError: (err) => toast.error(err.response?.data?.message || 'Update failed'),
+        onError: (err, variables, context) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(['complaint', id], context.previousData);
+            }
+            toast.error(err.response?.data?.message || 'Update failed');
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['complaint', id] });
+            queryClient.invalidateQueries({ queryKey: ['citizen-complaints'] });
+            queryClient.invalidateQueries({ queryKey: ['staff-complaints'] });
+        },
     });
 
     const commentMutation = useMutation({
         mutationFn: () => complaintService.addComment(id, newComment, isInternal),
+        onMutate: async () => {
+            await queryClient.cancelQueries({ queryKey: ['complaint', id] });
+            const previousData = queryClient.getQueryData(['complaint', id]);
+
+            if (previousData) {
+                const complaint = previousData.data.complaint;
+                const newCommentObj = {
+                    _id: `temp-${Date.now()}`,
+                    message: newComment,
+                    isInternal: isInternal,
+                    userId: { name: user?.name, role: user?.role },
+                    createdAt: new Date().toISOString()
+                };
+
+                queryClient.setQueryData(['complaint', id], {
+                    ...previousData,
+                    data: {
+                        ...previousData.data,
+                        complaint: {
+                            ...complaint,
+                            comments: [...(complaint.comments || []), newCommentObj]
+                        }
+                    }
+                });
+            }
+            return { previousData };
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['complaint', id] });
             setNewComment('');
             toast.success('Comment added');
         },
-        onError: (err) => toast.error(err.response?.data?.message || 'Failed to add comment'),
+        onError: (err, variables, context) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(['complaint', id], context.previousData);
+            }
+            toast.error(err.response?.data?.message || 'Failed to add comment');
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['complaint', id] });
+        },
     });
 
     const complaint = data?.data?.complaint;
@@ -88,10 +197,26 @@ const ComplaintDetails = () => {
                         <div className="flex items-center gap-3 flex-wrap mt-2">
                             <span className={`badge ${STATUS_COLORS[complaint.status]}`}>{complaint.status}</span>
                             <span className={`badge ${PRIORITY_LEVEL_COLORS[complaint.priorityLevel]}`}>{complaint.priorityLevel}</span>
-                            <div className="flex items-center gap-1.5 bg-[#1A1A1B] text-white px-2.5 py-1 rounded-md border border-neutral-700">
-                                <ArrowBigUp className="w-4 h-4 fill-orange-500 text-orange-500" />
-                                <span className="text-sm font-bold">{complaint.upvotes || 0}</span>
-                            </div>
+                            <button 
+                                onClick={() => upvoteMutation.mutate()}
+                                disabled={['Resolved', 'Rejected'].includes(complaint.status) || upvoteMutation.isPending}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border transition-all active:scale-95 ${
+                                    complaint.upvotedBy?.includes(user?._id)
+                                        ? 'bg-orange-500/10 border-orange-500/30'
+                                        : 'bg-[#1A1A1B] border-neutral-700 hover:bg-neutral-800'
+                                }`}
+                            >
+                                <ArrowBigUp 
+                                    className={`w-4 h-4 transition-colors ${
+                                        complaint.upvotedBy?.includes(user?._id)
+                                            ? 'fill-orange-500 text-orange-500'
+                                            : 'text-white'
+                                    }`} 
+                                />
+                                <span className={`text-sm font-bold ${complaint.upvotedBy?.includes(user?._id) ? 'text-orange-500' : 'text-white'}`}>
+                                    {complaint.upvotes || 0}
+                                </span>
+                            </button>
                             <span className="text-sm font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">
                                 Priority Score: {complaint.priorityScore}
                             </span>

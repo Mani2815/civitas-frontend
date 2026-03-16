@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { HiOutlinePhotograph, HiOutlineLocationMarker, HiOutlineX } from 'react-icons/hi';
 import { motion } from 'framer-motion';
 import MapEmbed from '../components/MapEmbed';
+import Dropdown from '../components/Dropdown';
 
 const CreateComplaint = () => {
     const navigate = useNavigate();
@@ -108,35 +109,18 @@ const CreateComplaint = () => {
             {step === 1 && (
                 <div className="relative">
                     <div className="absolute -inset-1 bg-gradient-to-r from-primary-light via-accent to-secondary-teal rounded-2xl md:rounded-[1.5rem] blur-lg opacity-20"></div>
-                    <div className="relative card p-6 space-y-6 bg-bg-secondary w-full">
+                    <div className="relative card p-6 space-y-6 bg-bg-secondary w-full !overflow-visible">
                         <div>
-                            <label className="input-label mb-3 block">Category</label>
-                            <div className="relative">
-                                {formData.category && (() => {
-                                    const cat = CATEGORY_ICONS[formData.category];
-                                    if (!cat) return null;
-                                    const { icon: Icon, className, bgClassName } = cat;
-                                    return (
-                                        <span className={`absolute left-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-lg ${bgClassName} pointer-events-none z-10`}>
-                                            <Icon className={`w-4 h-4 ${className}`} />
-                                        </span>
-                                    );
-                                })()}
-                                <select
-                                    name="category"
-                                    value={formData.category}
-                                    onChange={handleChange}
-                                    className={`input-field appearance-none cursor-pointer pr-10 ${formData.category ? 'pl-12' : 'pl-4'} transition-all`}
-                                >
-                                    <option value="" disabled>Select a category…</option>
-                                    {CATEGORIES.map((cat) => (
-                                        <option key={cat} value={cat}>{cat}</option>
-                                    ))}
-                                </select>
-                                <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
+                            <Dropdown
+                                label="Category"
+                                name="category"
+                                options={CATEGORIES}
+                                value={formData.category}
+                                onChange={handleChange}
+                                placeholder="Select a category…"
+                                itemIcons={CATEGORY_ICONS}
+                                required
+                            />
                         </div>
                     </div>
                 </div>
