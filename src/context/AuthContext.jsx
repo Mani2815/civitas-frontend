@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import authService from '../services/authService';
 
 const AuthContext = createContext(null);
@@ -6,6 +7,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
 
     // Load user from token on mount
     useEffect(() => {
@@ -28,20 +30,22 @@ export const AuthProvider = ({ children }) => {
     const login = useCallback(async (email, password) => {
         const res = await authService.login(email, password);
         const { user: userData, token } = res.data;
+        queryClient.clear(); // Clear cache before setting new user
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
         return userData;
-    }, []);
+    }, [queryClient]);
 
     const register = useCallback(async (userData) => {
         const res = await authService.register(userData);
         const { user: newUser, token } = res.data;
+        queryClient.clear(); // Clear cache before setting new user
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(newUser));
         setUser(newUser);
         return newUser;
-    }, []);
+    }, [queryClient]);
 
     const logout = useCallback(async () => {
         try {
@@ -49,10 +53,11 @@ export const AuthProvider = ({ children }) => {
         } catch {
             // Ignore server-side logout errors
         }
+        queryClient.clear(); // Clear all cached data on logout
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
-    }, []);
+    }, [queryClient]);
 
     const updateUser = useCallback((userData) => {
         const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
