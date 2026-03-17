@@ -20,7 +20,7 @@ const CitizenDashboard = () => {
     const queryClient = useQueryClient();
     const { data: complaintsData, isLoading: complaintsLoading } = useQuery({
         queryKey: ['citizen-complaints', statusFilter, viewTab],
-        queryFn: () => complaintService.getComplaints({ 
+        queryFn: () => complaintService.getComplaints({
             status: statusFilter || undefined,
             sort: viewTab === 'city' ? '-upvotes' : '-createdAt',
             scope: viewTab === 'city' ? 'city' : 'personal'
@@ -44,7 +44,7 @@ const CitizenDashboard = () => {
                                 return {
                                     ...c,
                                     upvotes: isUpvoted ? Math.max(0, c.upvotes - 1) : c.upvotes + 1,
-                                    upvotedBy: isUpvoted 
+                                    upvotedBy: isUpvoted
                                         ? c.upvotedBy.filter(uid => uid !== user?._id)
                                         : [...(c.upvotedBy || []), user?._id]
                                 };
@@ -86,12 +86,12 @@ const CitizenDashboard = () => {
     });
 
     const complaints = complaintsData?.data?.complaints || [];
-    
+
     // Stats for the current view
-    const currentStats = viewTab === 'personal' 
+    const currentStats = viewTab === 'personal'
         ? personalStatsData?.data || { total: 0, pending: 0, resolved: 0, categoryDistribution: [], statusDistribution: [] }
         : cityStatsData?.data?.overview || { total: 0, pending: 0, resolved: 0 };
-    
+
     const chartData = viewTab === 'personal'
         ? personalStatsData?.data || { categoryDistribution: [], statusDistribution: [] }
         : cityStatsData?.data || { categories: [], statuses: [] };
@@ -129,7 +129,7 @@ const CitizenDashboard = () => {
                         </h2>
                         <p className="text-sm text-text-secondary mt-1">Track complaints and city progress</p>
                     </div>
-                    
+
                     <nav className="flex gap-4">
                         <button
                             onClick={() => setViewTab('personal')}
@@ -147,9 +147,9 @@ const CitizenDashboard = () => {
                         </button>
                     </nav>
                 </div>
-                
+
                 <div className="pb-2">
-                    <Link to="/citizen/new-complaint" className="flex items-center gap-2 px-5 py-2.5 bg-neutral-900 hover:bg-black text-white text-sm font-semibold rounded-full shadow-sm hover:scale-[1.02] transition-all btn-premium-hover">
+                    <Link to="/citizen/new-complaint" className="flex items-center gap-2 px-5 py-2.5 bg-neutral-900 text-white text-sm font-semibold rounded-full shadow-sm transition-all">
                         <HiOutlinePlusCircle className="w-5 h-5" />
                         File New Complaint
                     </Link>
@@ -160,7 +160,7 @@ const CitizenDashboard = () => {
             <div className="space-y-6 animate-fade-in relative">
                 {cityStatsLoading && viewTab === 'city' && (
                     <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center">
-                         <div className="w-6 h-6 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-6 h-6 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin"></div>
                     </div>
                 )}
 
@@ -243,10 +243,10 @@ const CitizenDashboard = () => {
 
             {/* Complaints Feed Header */}
             <div className="pt-4 border-t border-border mt-8">
-               <h3 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
-                   <HiOutlineClipboardList className="w-5 h-5 text-text-tertiary" />
-                   Recent Complaints Feed
-               </h3>
+                <h3 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
+                    <HiOutlineClipboardList className="w-5 h-5 text-text-tertiary" />
+                    Recent Complaints Feed
+                </h3>
                 <div className="flex gap-2 flex-wrap mb-4">
                     <button
                         onClick={() => setStatusFilter('')}
@@ -301,24 +301,23 @@ const CitizenDashboard = () => {
                                 </div>
                                 <div className="text-right flex-shrink-0 flex flex-col items-end gap-2">
                                     <p className="text-xs text-text-tertiary">{formatRelativeTime(complaint.createdAt)}</p>
-                                    
+
                                     <div className="flex items-center gap-2">
                                         {complaint.priorityLevel && (
                                             <span className="text-sm font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md border border-orange-500/20">
                                                 P:{complaint.priorityScore}
                                             </span>
                                         )}
-                                        
+
                                         <button
                                             onClick={(e) => handleUpvote(e, complaint._id)}
                                             disabled={['Resolved', 'Rejected'].includes(complaint.status)}
-                                            className={`flex items-center gap-2 px-4 py-1.5 rounded-full transition-all duration-200 text-white ${
-                                                ['Resolved', 'Rejected'].includes(complaint.status)
-                                                    ? 'opacity-50 cursor-not-allowed bg-[#1A1A1B]'
-                                                    : complaint.upvotedBy?.includes(user?._id)
-                                                        ? 'bg-[#1A1A1B] border border-orange-500/30'
-                                                        : 'bg-[#1A1A1B] hover:bg-[#272729] active:scale-95'
-                                            }`}
+                                            className={`flex items-center gap-2 px-4 py-1.5 rounded-full transition-all duration-200 text-white ${['Resolved', 'Rejected'].includes(complaint.status)
+                                                ? 'opacity-50 cursor-not-allowed bg-[#1A1A1B]'
+                                                : complaint.upvotedBy?.includes(user?._id)
+                                                    ? 'bg-[#1A1A1B] border border-orange-500/30'
+                                                    : 'bg-[#1A1A1B] hover:bg-[#272729] active:scale-95'
+                                                }`}
                                             title={
                                                 ['Resolved', 'Rejected'].includes(complaint.status)
                                                     ? `Complaint is ${complaint.status.toLowerCase()}`
@@ -327,12 +326,11 @@ const CitizenDashboard = () => {
                                                         : "upvote"
                                             }
                                         >
-                                            <ArrowBigUp 
-                                                className={`w-5 h-5 transition-colors ${
-                                                    complaint.upvotedBy?.includes(user?._id)
-                                                        ? 'fill-orange-500 text-orange-500'
-                                                        : 'text-white group-hover:text-orange-400'
-                                                }`} 
+                                            <ArrowBigUp
+                                                className={`w-5 h-5 transition-colors ${complaint.upvotedBy?.includes(user?._id)
+                                                    ? 'fill-orange-500 text-orange-500'
+                                                    : 'text-white group-hover:text-orange-400'
+                                                    }`}
                                             />
                                             {complaint.upvotes > 0 && (
                                                 <span className="text-sm font-bold font-sans">
