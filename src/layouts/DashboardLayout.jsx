@@ -143,7 +143,7 @@ const DashboardLayout = () => {
                     </div>
                 </main>
             </div>
-            <ChatbotWidget />
+            {user?.role === 'citizen' && <ChatbotWidget />}
         </div>
     );
 };
