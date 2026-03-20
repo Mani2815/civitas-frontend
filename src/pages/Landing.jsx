@@ -20,13 +20,16 @@ const FadeIn = ({ children, delay = 0, className = '', y = 20 }) => (
 
 const Landing = () => {
     const [stats, setStats] = useState({
-        resolvedCount: 50000,
-        departmentCount: 120,
-        satisfactionRate: 98,
-        avgResolutionTime: 24
+        resolvedCount: 1000,
+        departmentCount: 5,
+        satisfactionRate: 95,
+        avgResolutionTime: 48
     });
 
+    // Stats are now hardcoded as per user request
     useEffect(() => {
+        // Dynamic fetching disabled to keep stats hardcoded
+        /*
         const fetchStats = async () => {
             try {
                 const response = await analyticsService.getImpactStats();
@@ -38,6 +41,7 @@ const Landing = () => {
             }
         };
         fetchStats();
+        */
     }, []);
 
     return (
